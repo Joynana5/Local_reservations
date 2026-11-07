@@ -1,36 +1,17 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TableNook
 
-## Getting Started
+TableNook helps guests discover independent restaurants in Maple Bay and check table availability.
 
-First, run the development server:
+## Getting started
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Install dependencies with `npm install`. Apply the migrations in `supabase/migrations` and run `supabase/seed.sql` against your Supabase project. Copy `.env.example` to `.env.local` and set the project URL, publishable key, and server-only secret key. Never expose the secret key to the browser or commit it.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Run `npm run dev`, then open http://localhost:3000. Run unit tests with `npm test` and lint with `npm run lint`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Restaurant search
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The home page shows restaurants and availability at the next half-hour. Apply the neighborhood, date, time, and party-size filters to show only matching restaurants. Times are in Maple Bay's `America/Los_Angeles` time zone; invalid or ambiguous local times during daylight-saving transitions are rejected.
 
-## Learn More
+An available start time must be in opening hours and in the future, with a table large enough for the party. Confirmed and seated reservations block their table for their stored interval; the searched reservation would occupy it for 90 minutes. Cancelled and no-show reservations do not block availability. Availability is informational and can change; booking is not implemented yet.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The server uses `SUPABASE_SECRET_KEY` to check reservations because guest access to reservation rows is blocked by RLS. Only table and timing fields are read, and no guest information or secret key is sent to the page. Ensure the secret key is available only in the server environment.

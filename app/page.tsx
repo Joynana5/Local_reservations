@@ -1,69 +1,124 @@
-import Image from "next/image";
+import { Suspense } from "react";
+import Link from "next/link";
+import { connection } from "next/server";
+import {
+  defaultFilters,
+  neighborhoods,
+  parseFilters,
+  type SearchParams,
+} from "@/lib/search";
+import { searchRestaurants } from "@/lib/restaurant-search";
 
-export default function Home() {
+type Props = { searchParams: Promise<SearchParams> };
+
+export default function Home({ searchParams }: Props) {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main>
+      <header className="site-header">
+        <div className="shell header-inner">
+          <Link className="brand" href="/" aria-label="TableNook home">
+            <span className="brand-mark">T</span> TableNook
+          </Link>
+          <span className="header-note">Made for Maple Bay</span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+      <section className="hero">
+        <div className="shell">
+          <p className="eyebrow">YOUR TABLE AWAITS</p>
+          <h1>Good food, closer to home.</h1>
+          <p>Discover independent restaurants and find a table in Maple Bay.</p>
         </div>
-      </main>
+      </section>
+      <Suspense fallback={<div className="shell results">Loading restaurants...</div>}>
+        <SearchContent searchParams={searchParams} />
+      </Suspense>
+      <footer className="shell footer">TableNook · Made for local tables</footer>
+    </main>
+  );
+}
+
+async function SearchContent({ searchParams }: Props) {
+  await connection();
+  const params = await searchParams;
+  const defaults = defaultFilters();
+  const parsed = parseFilters(params, defaults);
+  const filters = parsed.ok ? parsed.filters : defaults;
+  let results: Awaited<ReturnType<typeof searchRestaurants>> | null = null;
+  let loadError = false;
+
+  if (parsed.ok) {
+    try {
+      results = await searchRestaurants(filters);
+    } catch (error) {
+      console.error("Restaurant search failed:", error);
+      loadError = true;
+    }
+  }
+
+  const applied = ["neighborhood", "date", "time", "partySize"].some((key) => params[key] !== undefined);
+  const visible = results?.filter((restaurant) => !applied || restaurant.available);
+
+  return (
+    <div className="shell">
+      <form className="search-form" method="get">
+        <div className="field">
+          <label htmlFor="neighborhood">Neighborhood</label>
+          <select id="neighborhood" name="neighborhood" defaultValue={filters.neighborhood}>
+            <option value="">All neighborhoods</option>
+            {neighborhoods.map((name) => <option key={name} value={name}>{name}</option>)}
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="date">Date</label>
+          <input id="date" name="date" type="date" required min={defaults.date} defaultValue={filters.date} />
+        </div>
+        <div className="field">
+          <label htmlFor="time">Time</label>
+          <input id="time" name="time" type="time" required step="1800" defaultValue={filters.time} />
+        </div>
+        <div className="field">
+          <label htmlFor="partySize">Party size</label>
+          <select id="partySize" name="partySize" defaultValue={filters.partySize}>
+            {Array.from({ length: 20 }, (_, i) => i + 1).map((size) => (
+              <option key={size} value={size}>{size} {size === 1 ? "person" : "people"}</option>
+            ))}
+          </select>
+        </div>
+        <button type="submit">Find a table</button>
+      </form>
+      <p className="time-note">Times are local to Maple Bay (Pacific time). Reservations occupy a table for 90 minutes.</p>
+      <section className="results" aria-labelledby="results-heading">
+        <div className="results-heading">
+          <div>
+            <p className="eyebrow">EXPLORE MAPLE BAY</p>
+            <h2 id="results-heading">Local favorites</h2>
+          </div>
+          {visible && <p>{visible.length} {visible.length === 1 ? "restaurant" : "restaurants"}</p>}
+        </div>
+        {!parsed.ok && <div className="message" role="alert">{parsed.error} Please update your search and try again.</div>}
+        {loadError && <div className="message" role="alert">We couldn&apos;t load availability right now. Please try again later.</div>}
+        {visible?.length === 0 && (
+          <div className="message">No restaurants match this search. Try another time, date, party size, or neighborhood.</div>
+        )}
+        {visible && visible.length > 0 && (
+          <div className="restaurant-grid">
+            {visible.map((restaurant) => (
+              <article className="restaurant-card" key={restaurant.id}>
+                <div className="card-top">
+                  <span className="cuisine">{restaurant.cuisine}</span>
+                  <span className={restaurant.available ? "availability available" : "availability unavailable"}>
+                    {restaurant.available ? "Available" : "Unavailable"}
+                  </span>
+                </div>
+                <h3>{restaurant.name}</h3>
+                <p className="location">{restaurant.neighborhood} · {restaurant.address}</p>
+                <p className="description">{restaurant.description}</p>
+                <div className="card-bottom">{restaurant.available ? "Table available at selected time" : "No table available at selected time"}</div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
