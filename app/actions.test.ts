@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../lib/supabase", () => ({
+vi.mock("../lib/supabase/admin", () => ({
   getRestaurants: vi.fn(),
   getRestaurantWithDetails: vi.fn(),
   getReservationsForRestaurant: vi.fn(),
 }));
 
 import { searchRestaurants } from "./actions";
-import { getRestaurants, getRestaurantWithDetails, getReservationsForRestaurant } from "../lib/supabase";
+import { getRestaurants, getRestaurantWithDetails, getReservationsForRestaurant } from "../lib/supabase/admin";
 
 const restaurant = {
   id: "r1", name: "Example", neighborhood: "Riverside", cuisine: "Italian",
