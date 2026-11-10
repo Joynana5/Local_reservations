@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore, type FormEvent } from "react";
+import Link from "next/link";
 import { searchRestaurants, type RestaurantSearchResult } from "../actions";
 
 const neighborhoods = ["Old Harbor", "Riverside", "Midtown", "Hillcrest"];
@@ -107,7 +108,14 @@ export function SearchPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {results.map((restaurant) => (
                   <article key={restaurant.id} className="bg-white rounded-lg border border-zinc-200 p-6">
-                    <h3 className="text-xl font-semibold text-zinc-900">{restaurant.name}</h3>
+                    <h3 className="text-xl font-semibold text-zinc-900">
+                      <Link
+                        href={`/restaurants/${restaurant.id}?${new URLSearchParams({ date: date ?? today, party: String(partySize) })}`}
+                        className="hover:underline focus-visible:outline-2 focus-visible:outline-blue-600"
+                      >
+                        {restaurant.name}
+                      </Link>
+                    </h3>
                     <p className="text-sm text-zinc-600 mt-1">{restaurant.cuisine} in {restaurant.neighborhood}</p>
                     <p className="text-sm text-zinc-600 mt-2">{restaurant.address}</p>
                     {restaurant.description && <p className="text-sm text-zinc-600 mt-2">{restaurant.description}</p>}
