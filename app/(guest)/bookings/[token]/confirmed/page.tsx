@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { getReservationByToken } from "@/lib/supabase";
+import { getReservationByToken } from "@/lib/supabase/admin";
 import { formatMapleBayDate, formatMapleBayTime } from "@/lib/search-time";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";

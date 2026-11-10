@@ -9,7 +9,7 @@ import {
   getReservationsForRestaurant,
   getRestaurantWithDetails,
   insertReservation,
-} from "../supabase";
+} from "../supabase/admin";
 import type { BookingFieldErrors } from "../validation/booking";
 
 export type BookingFormState =

@@ -6,7 +6,7 @@ import {
   isRestaurantId,
   parseBookingParams,
 } from "@/lib/booking/search-params";
-import { getRestaurantWithDetails } from "@/lib/supabase";
+import { getRestaurantWithDetails } from "@/lib/supabase/admin";
 import { BookingForm } from "@/components/guest/booking-form";
 import { buttonClasses } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";

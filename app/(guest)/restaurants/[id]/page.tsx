@@ -22,7 +22,7 @@ import {
 import {
   getReservationsForRestaurant,
   getRestaurantWithDetails,
-} from "@/lib/supabase";
+} from "@/lib/supabase/admin";
 import { SlotPickerForm } from "@/components/guest/slot-picker-form";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SiteHeader } from "@/components/ui/site-header";
