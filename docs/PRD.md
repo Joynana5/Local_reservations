@@ -2,7 +2,7 @@
 
 **Course:** AI Coding — P2 Project
 **Team:** Partner A, Partner B
-**Status:** Draft v1
+**Status:** Draft v1.1 (see §15 Revision history)
 **Location in repo:** `docs/PRD.md`
 
 ---
@@ -51,7 +51,7 @@ Waitlists are a particular pain point. Some small restaurants still keep their w
 
 | Goal | Success metric (measured in the demo/tests) |
 |---|---|
-| Guests can book quickly | A guest completes a booking in under 2 minutes and within 4 screens |
+| Guests can book quickly | A guest completes a booking in under 2 minutes and within 4 screens, counted from the Search page (G1) |
 | Restaurants can onboard easily | A new restaurant completes setup (profile, hours, tables) in under 10 minutes |
 | Bookings are reliable | 0 double bookings of the same table in automated tests |
 | The waitlist feels live | A guest's waitlist status updates within 5 seconds of a staff action, without a page reload |
@@ -246,8 +246,8 @@ Fictional city **Maple Bay** with four neighborhoods: **Old Harbor, Riverside, M
 ## 10. User Flows
 
 ### Flow 1: Guest books a table
-1. Guest opens the Home page and sees the restaurant list.
-2. Selects neighborhood, date, time, and party size, then applies filters.
+1. Guest opens the Start page and clicks "Find a table" (or opens the Search page directly).
+2. On the Search page, selects neighborhood, date, time, and party size, then clicks "Show restaurants".
 3. Clicks a restaurant card and sees the Restaurant page with available time slots.
 4. Clicks a time slot and the Booking form opens.
 5. Enters name, phone, and email and clicks "Book table".
@@ -285,28 +285,29 @@ Fictional city **Maple Bay** with four neighborhoods: **Old Harbor, Riverside, M
 
 ## 11. Mockups
 
-*To be completed after the mockup is created. Add a screenshot to `docs/mockups/` and a one-line description for each screen.*
+The visual design is described in text in **`docs/DESIGN.md`** (colors, typography, shared components, and every screen with its states). Mockup images are in `docs/mockups/`; screens without an image are described in DESIGN.md only and follow the same patterns.
 
 **Guest screens**
-| # | Screen | Purpose | Screenshot |
+| # | Screen | Purpose | Mockup image |
 |---|---|---|---|
-| G1 | Home / Search | Restaurant list with filters | `docs/mockups/g1-home.png` |
-| G2 | Restaurant page | Details, available time slots, waitlist info | `docs/mockups/g2-restaurant.png` |
-| G3 | Booking form | Name, phone, email, party size | `docs/mockups/g3-booking.png` |
-| G4 | Booking confirmation | Booking details and next steps | `docs/mockups/g4-confirmation.png` |
-| G5 | Join waitlist form | Name, phone, email, party size | `docs/mockups/g5-waitlist-join.png` |
-| G6 | Waitlist status | Live position, estimate, "Leave waitlist" | `docs/mockups/g6-waitlist-status.png` |
-| G7 | Manage booking | Reservation details and "Cancel" | `docs/mockups/g7-manage.png` |
+| H0 | Start | Landing page: what TableNook is, choice between guest and restaurant | `docs/mockups/h0-start.png` |
+| G1 | Search | Restaurant list with filters and availability badges | `docs/mockups/g1-search.png` |
+| G2 | Restaurant page | Details, hours, available time slots (waitlist info in Sprint 2) | `docs/mockups/g2-restaurant.png` |
+| G3 | Booking form | Name, phone, email, party size | text only |
+| G4 | Booking confirmation | Booking details and next steps | text only |
+| G5 | Join waitlist form | Name, phone, email, party size | text only |
+| G6 | Waitlist status | Live position, estimate, "Leave waitlist" | text only |
+| G7 | Manage booking | Reservation details and "Cancel" | text only |
 
 **Restaurant screens**
-| # | Screen | Purpose | Screenshot |
+| # | Screen | Purpose | Mockup image |
 |---|---|---|---|
-| R1 | Sign up / Log in | Restaurant account access | `docs/mockups/r1-auth.png` |
-| R2 | Setup | Profile, opening hours, tables | `docs/mockups/r2-setup.png` |
+| R1 | Log in / Sign up | Restaurant account access | `docs/mockups/r1-auth.png` |
+| R2 | Setup | Profile, opening hours, tables | text only |
 | R3 | Dashboard — Reservations | Today's and upcoming bookings with status controls | `docs/mockups/r3-reservations.png` |
-| R4 | Dashboard — Waitlist | Ordered waitlist with Call / Seated / Remove | `docs/mockups/r4-waitlist.png` |
+| R4 | Dashboard — Waitlist | Ordered waitlist with Call / Seated / Remove | text only |
 
-Each screen should also show its **empty state** (e.g., "No reservations today") and **error state** where relevant.
+Each screen also has an **empty state** (e.g., "No reservations today") and an **error state** where relevant. The Menu section shown in the G2 mockup is illustrative only (see §12).
 
 ---
 
@@ -322,6 +323,7 @@ Each screen should also show its **empty state** (e.g., "No reservations today")
 - Multiple staff accounts or roles per restaurant
 - Planning a night out across multiple restaurants
 - Real restaurant data (demo data for Maple Bay only)
+- Restaurant menus (shown in the G2 mockup for illustration only; not in the data model)
 
 ---
 
@@ -345,3 +347,13 @@ Sprint 2 is shorter (about 6 days), so it holds the four medium-priority stories
 | Double booking under concurrent requests | Re-check availability on the server inside a database transaction or constraint before saving |
 | Email delivery limits on free tiers | Test with team members' own addresses; check Resend's free-tier sending rules early in Sprint 1 |
 | Wait estimate accuracy | Keep the formula simple and transparent; let restaurants adjust average turn time |
+| **Open question:** what is the last bookable slot before closing? (The G2 mockup shows 9:00 PM for a 10:00 PM closing.) | Decide before implementing slot generation (US-2, US-4); then update FR-3/FR-6, AGENTS.md §1.3 and the G2 helper text |
+
+---
+
+## 15. Revision history
+
+| Version | Changes |
+|---|---|
+| v1 | Initial PRD: problem, personas, user stories US-1…US-10, requirements, flows, timeline |
+| v1.1 | Added Start page (H0) and renamed Home to Search (G1); updated Flow 1; booking metric counted from G1; §11 filled with mockups and link to `docs/DESIGN.md`; menus added to Out of Scope; open question on the last bookable slot |

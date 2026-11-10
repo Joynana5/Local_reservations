@@ -16,6 +16,15 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+For development access from another device on the local network, use the
+network address printed by Next.js. The server allows its own IPv4 addresses
+as development origins; restart it if the machine's network address changes.
+Only use the development server on a trusted network.
+
+Run unit tests with `npm test`. For browser navigation tests, install the
+Playwright Chromium browser with `npx playwright install chromium`, then run
+`npm run test:e2e`. The browser tests start their own development server.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
