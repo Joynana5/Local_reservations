@@ -7,6 +7,13 @@
  * - A slot is available if at least one table with capacity ≥ party size has no overlapping reservations
  */
 
+import { getMapleBayInstant } from './search-time';
+
+export const SLOT_MINUTES = 30;
+export const HOLD_MINUTES = 90;
+const HOLD_MS = HOLD_MINUTES * 60 * 1000;
+const SLOT_MS = SLOT_MINUTES * 60 * 1000;
+
 export interface Reservation {
   startsAt: Date;
   endsAt: Date;
@@ -17,6 +24,35 @@ export interface Reservation {
 export interface Table {
   id: string;
   capacity: number;
+}
+
+/**
+ * Tables that can seat the party and have no overlapping active reservation,
+ * smallest capacity first so large tables stay free for large parties.
+ */
+export function pickTables(
+  slotStart: Date,
+  partySize: number,
+  tables: Table[],
+  reservations: Reservation[]
+): Table[] {
+  const slotEnd = new Date(slotStart.getTime() + HOLD_MS);
+
+  const activeReservations = reservations.filter(
+    (res) => res.status === 'confirmed' || res.status === 'seated'
+  );
+
+  return tables
+    .filter((table) => table.capacity >= partySize)
+    .filter((table) => !activeReservations.some((reservation) => {
+      // A reservation without a table blocks every table
+      if (reservation.tableId && reservation.tableId !== table.id) {
+        return false;
+      }
+      // Overlap of [slotStart, slotEnd) with [startsAt, endsAt)
+      return !(slotEnd <= reservation.startsAt || slotStart >= reservation.endsAt);
+    }))
+    .sort((a, b) => a.capacity - b.capacity);
 }
 
 /**
@@ -34,40 +70,20 @@ export function isSlotAvailable(
   tables: Table[],
   reservations: Reservation[]
 ): boolean {
-  // Reservation holds a table for 90 minutes
-  const reservationDuration = 90 * 60 * 1000; // ms
-  const slotEnd = new Date(slotStart.getTime() + reservationDuration);
+  return pickTables(slotStart, partySize, tables, reservations).length > 0;
+}
 
-  // Filter to tables that can accommodate the party
-  const suitableTables = tables.filter((table) => table.capacity >= partySize);
-
-  if (suitableTables.length === 0) {
-    return false;
-  }
-
-  // Filter to active reservations (confirmed or seated)
-  const activeReservations = reservations.filter(
-    (res) => res.status === 'confirmed' || res.status === 'seated'
-  );
-
-  // Check if any suitable table has no overlapping reservation in the time slot
-  return suitableTables.some((table) => {
-    return !activeReservations.some((reservation) => {
-      // If tableId is specified, only consider reservations on that table
-      if (reservation.tableId && reservation.tableId !== table.id) {
-        return false;
-      }
-
-      // Check for time overlap: [slotStart, slotEnd) with [reservation.startsAt, reservation.endsAt)
-      return !(slotEnd <= reservation.startsAt || slotStart >= reservation.endsAt);
-    });
-  });
+/**
+ * A booking must end by closing time: the last slot is closing − 90 minutes.
+ */
+export function fitsBeforeClosing(slotStart: Date, closeAt: Date): boolean {
+  return slotStart.getTime() + HOLD_MS <= closeAt.getTime();
 }
 
 /**
  * Get all available 30-minute time slots within a restaurant's operating hours.
  * 
- * @param date - The date to check
+ * @param date - Local Maple Bay date as "YYYY-MM-DD"
  * @param openTime - Opening time as "HH:MM"
  * @param closeTime - Closing time as "HH:MM"
  * @param partySize - Number of people
@@ -76,35 +92,67 @@ export function isSlotAvailable(
  * @returns Array of available slot start times (ISO strings)
  */
 export function getAvailableSlots(
-  date: Date,
+  date: string,
   openTime: string,
   closeTime: string,
   partySize: number,
   tables: Table[],
   reservations: Reservation[]
 ): string[] {
-  const [openHour, openMinute] = openTime.split(':').map(Number);
-  const [closeHour, closeMinute] = closeTime.split(':').map(Number);
+  const openAt = getMapleBayInstant(date, openTime.slice(0, 5)).startsAt;
+  const closeAt = getMapleBayInstant(date, closeTime.slice(0, 5)).startsAt;
 
   const slots: string[] = [];
-  let currentTime = new Date(date);
-  currentTime.setHours(openHour, openMinute, 0, 0);
-  
-  const closeTimeDate = new Date(date);
-  closeTimeDate.setHours(closeHour, closeMinute, 0, 0);
-
-  // We need 90 minutes to accommodate the reservation + 30-minute slot buffer
-  const reservationDuration = 90 * 60 * 1000;
-  const lastSlotStart = new Date(closeTimeDate.getTime() - reservationDuration);
-
-  while (currentTime <= lastSlotStart) {
-    if (isSlotAvailable(currentTime, partySize, tables, reservations)) {
-      slots.push(currentTime.toISOString());
+  for (
+    let current = openAt;
+    fitsBeforeClosing(current, closeAt);
+    current = new Date(current.getTime() + SLOT_MS)
+  ) {
+    if (isSlotAvailable(current, partySize, tables, reservations)) {
+      slots.push(current.toISOString());
     }
-    currentTime = new Date(currentTime.getTime() + 30 * 60 * 1000); // 30-minute slots
   }
 
   return slots;
+}
+
+/**
+ * Every bookable slot of the day (start + 90 min within opening hours) for a party size, marked free or booked.
+ * Empty when no table is large enough for the party.
+ */
+export function getSlotAvailability(
+  date: string,
+  openTime: string,
+  closeTime: string,
+  partySize: number,
+  tables: Table[],
+  reservations: Reservation[]
+): Array<{ startsAt: string; available: boolean }> {
+  const free = new Set(getAvailableSlots(date, openTime, closeTime, partySize, tables, reservations));
+  return getAvailableSlots(date, openTime, closeTime, partySize, tables, []).map((startsAt) => ({
+    startsAt,
+    available: free.has(startsAt),
+  }));
+}
+
+/**
+ * Pick up to `limit` slots closest in time to the requested one (the requested slot itself is excluded),
+ * returned in chronological order.
+ */
+export function getAlternativeSlots(
+  requestedStart: Date,
+  availableSlots: string[],
+  limit = 3
+): string[] {
+  const requested = requestedStart.getTime();
+  return availableSlots
+    .filter((slot) => new Date(slot).getTime() !== requested)
+    .sort((a, b) => {
+      const distance = Math.abs(new Date(a).getTime() - requested) - Math.abs(new Date(b).getTime() - requested);
+      return distance !== 0 ? distance : new Date(a).getTime() - new Date(b).getTime();
+    })
+    .slice(0, limit)
+    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 }
 
 /**
