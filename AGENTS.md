@@ -16,6 +16,8 @@
 5. If something is ambiguous or not in the PRD, **ask** instead of inventing behavior.
 6. Implement only what the issue asks for. **Before finishing, run `npm run lint`, `npm run test` and `npm run build` and fix every error.**
 7. Finish with a short chat summary: changed files + a checklist of covered acceptance criteria.
+8. When talking to me start with ❤ and end with 👍
+
 
 ---
 
@@ -71,6 +73,12 @@ Key patterns:
 - **Mutations go through Server Actions:** parse with Zod → check auth/ownership → call Supabase → return `{ ok: true, data }` or `{ ok: false, fieldErrors }`.
 - **Business logic is pure and lives in `lib/`**, never inside components.
 - **Realtime** subscriptions live in client components and always unsubscribe on unmount.
+
+Supabase clients (§1.2 `lib/supabase/`):
+- **Admin client** (`admin.ts`): secret key, server-only, for guest flows (search, availability checks).
+- **Server client** (`server.ts`): @supabase/ssr with cookies, for restaurant-owner flows with Row Level Security (RLS).
+- **Browser client** (`client.ts`): publishable key, for client-side interactions.
+- **Rule:** Guest flows use the admin client; owner flows must use the server client so RLS applies. Never use the admin client for owner data.
 
 ### 1.3 Domain rules (from PRD — do not change without a PRD update)
 

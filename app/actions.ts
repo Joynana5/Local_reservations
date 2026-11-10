@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { isSlotAvailable } from "../lib/availability";
-import { getRestaurantWithDetails, getRestaurants, getReservationsForRestaurant } from "../lib/supabase";
+import { getRestaurantWithDetails, getRestaurants, getReservationsForRestaurant } from "../lib/supabase/admin";
 import { getMapleBaySlot } from "../lib/search-time";
 
 export interface RestaurantSearchResult {
@@ -38,10 +38,23 @@ export async function searchRestaurants(
     if (!details) throw new Error("Restaurant disappeared while searching");
 
     const hours = details.openingHours.find((item) => item.weekday === weekday);
-    const availableDuringHours = hours && !hours.is_closed && hours.open_time && hours.close_time
-      && input.time >= hours.open_time.slice(0, 5)
-      && input.time < hours.close_time.slice(0, 5);
-    if (!availableDuringHours) return null;
+    if (!hours || hours.is_closed || !hours.open_time || !hours.close_time) return null;
+
+    const startTimeStr = input.time;
+    if (startTimeStr < hours.open_time.slice(0, 5) || startTimeStr >= hours.close_time.slice(0, 5)) {
+      return null;
+    }
+
+    // FR-7: booking must end by closing time (last slot = closing - 90 min)
+    const endTimeStr = new Date(startsAt.getTime() + 90 * 60_000).toLocaleTimeString('en-CA', {
+      timeZone: 'America/Los_Angeles',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    });
+    if (endTimeStr > hours.close_time.slice(0, 5)) {
+      return null;
+    }
 
     const reservations = await getReservationsForRestaurant(restaurant.id, startsAt, endsAt);
     const available = isSlotAvailable(startsAt, input.partySize, details.tables, reservations.map((reservation) => ({
