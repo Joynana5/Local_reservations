@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import 'server-only';
+import type { InsertReservationResult, NewReservation } from '../booking/create-reservation';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SECRET_KEY!;
@@ -67,7 +68,7 @@ export async function getRestaurantWithDetails(
   tables: Table[];
 } | null> {
   const [restaurantRes, hoursRes, tablesRes] = await Promise.all([
-    supabase.from('restaurants').select('*').eq('id', restaurantId).single(),
+    supabase.from('restaurants').select('*').eq('id', restaurantId).maybeSingle(),
     supabase.from('opening_hours').select('*').eq('restaurant_id', restaurantId),
     supabase.from('tables').select('*').eq('restaurant_id', restaurantId),
   ]);
@@ -116,6 +117,80 @@ export async function getReservationsForRestaurant(
     reservations.push(...data);
     if (data.length < pageSize) return reservations;
   }
+}
+
+// Postgres exclusion_violation: raised by the no_double_booking constraint
+const EXCLUSION_VIOLATION = '23P01';
+
+export async function insertReservation(
+  reservation: NewReservation,
+): Promise<InsertReservationResult> {
+  const { data, error } = await supabase
+    .from('reservations')
+    .insert({
+      restaurant_id: reservation.restaurantId,
+      table_id: reservation.tableId,
+      guest_name: reservation.guestName,
+      guest_phone: reservation.guestPhone,
+      guest_email: reservation.guestEmail,
+      party_size: reservation.partySize,
+      starts_at: reservation.startsAt.toISOString(),
+      ends_at: reservation.endsAt.toISOString(),
+      status: 'confirmed',
+    })
+    .select('id, manage_token')
+    .single();
+
+  if (error) {
+    if (error.code === EXCLUSION_VIOLATION) {
+      return { kind: 'overlap' };
+    }
+    throw new Error(`Failed to create reservation: ${error.message}`);
+  }
+
+  return { kind: 'created', reservationId: data.id, manageToken: data.manage_token };
+}
+
+export interface BookingConfirmation {
+  id: string;
+  status: Reservation['status'];
+  starts_at: string;
+  ends_at: string;
+  party_size: number;
+  guest_name: string;
+  guest_email: string;
+  restaurant: Pick<Restaurant, 'id' | 'name' | 'neighborhood' | 'cuisine' | 'address'>;
+}
+
+const MANAGE_TOKEN_PATTERN = /^[0-9a-f]{64}$/;
+
+export async function getReservationByToken(
+  token: string,
+): Promise<BookingConfirmation | null> {
+  if (!MANAGE_TOKEN_PATTERN.test(token)) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from('reservations')
+    .select('id, status, starts_at, ends_at, party_size, guest_name, guest_email, restaurants(id, name, neighborhood, cuisine, address)')
+    .eq('manage_token', token)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to fetch reservation: ${error.message}`);
+  }
+  if (!data || !data.restaurants) {
+    return null;
+  }
+
+  const { restaurants, ...reservation } = data;
+  // PostgREST embeds a many-to-one relation as an object, but the untyped client infers an array
+  const restaurant = Array.isArray(restaurants) ? restaurants[0] : restaurants;
+  if (!restaurant) {
+    return null;
+  }
+  return { ...reservation, restaurant };
 }
 
 export async function getUniqueNeighborhoods(): Promise<string[]> {

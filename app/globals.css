@@ -12,6 +12,17 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* TableNook design tokens (docs/DESIGN.md §1) */
+@theme {
+  --color-paper: #f8f8f5;
+  --color-brand: #1f4a40;
+  --color-accent: #f2c14e;
+  --color-ink: #1a1f1c;
+  --color-muted: #5f6662;
+  --color-line: #e3e3de;
+  --color-danger: #b42318;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
