@@ -2,7 +2,7 @@
 
 **Course:** AI Coding — P2 Project
 **Team:** Partner A, Partner B
-**Status:** Draft v1.1 (see §15 Revision history)
+**Status:** Draft v1.2 (see §15 Revision history)
 **Location in repo:** `docs/PRD.md`
 
 ---
@@ -107,7 +107,7 @@ As a **restaurant owner**, I want to add my tables and their seat counts, so tha
 #### US-4: Search and filter restaurants — High
 As a **guest**, I want to search restaurants by neighborhood, date, time, and party size, so that I only see places that can actually seat me.
 
-- [ ] Given I'm on the home page, when I see the restaurant list, then each card shows name, neighborhood, cuisine, and whether it has availability for my selected time
+- [ ] Given I'm on the Search page, when I see the restaurant list, then each card shows name, neighborhood, cuisine, and whether it has availability for my selected time
 - [ ] Given I choose a neighborhood, date, time, and party size, when I apply filters, then only restaurants that are open and have a suitable free table are shown
 - [ ] Given no restaurants match, when results load, then I see an empty-state message suggesting other times or neighborhoods
 
@@ -167,7 +167,7 @@ As a **guest**, I want to cancel my reservation from the link in my email, so th
 |---|---|---|---|
 | FR-1 | Restaurant auth | Email + password sign-up and login via Supabase Auth; session persists until logout | US-1 |
 | FR-2 | Restaurant profile | Name, neighborhood, cuisine, address, description; required-field validation | US-2 |
-| FR-3 | Opening hours | Open/close time per weekday or "closed"; bookable slots generated only within hours | US-2 |
+| FR-3 | Opening hours | Open/close time per weekday or "closed"; bookable slots generated only within hours; a booking must end by closing time (last slot = closing − 90 min) | US-2 |
 | FR-4 | Tables | Label + capacity (1–20); create, edit, delete with warning if future bookings exist | US-3 |
 | FR-5 | Restaurant search | Filter by neighborhood, date, time, party size; show availability per restaurant | US-4 |
 | FR-6 | Availability rules | 30-minute time slots; each reservation holds a table for 90 minutes; a slot is available if at least one table with capacity ≥ party size has no overlapping reservation | US-4, US-5 |
@@ -347,7 +347,7 @@ Sprint 2 is shorter (about 6 days), so it holds the four medium-priority stories
 | Double booking under concurrent requests | Re-check availability on the server inside a database transaction or constraint before saving |
 | Email delivery limits on free tiers | Test with team members' own addresses; check Resend's free-tier sending rules early in Sprint 1 |
 | Wait estimate accuracy | Keep the formula simple and transparent; let restaurants adjust average turn time |
-| **Open question:** what is the last bookable slot before closing? (The G2 mockup shows 9:00 PM for a 10:00 PM closing.) | Decide before implementing slot generation (US-2, US-4); then update FR-3/FR-6, AGENTS.md §1.3 and the G2 helper text |
+| Last bookable slot before closing (decided in v1.2) | A booking must end by closing time: last slot = closing − 90 min (FR-3). Update the G2 helper text in DESIGN.md to match |
 
 ---
 
@@ -357,3 +357,4 @@ Sprint 2 is shorter (about 6 days), so it holds the four medium-priority stories
 |---|---|
 | v1 | Initial PRD: problem, personas, user stories US-1…US-10, requirements, flows, timeline |
 | v1.1 | Added Start page (H0) and renamed Home to Search (G1); updated Flow 1; booking metric counted from G1; §11 filled with mockups and link to `docs/DESIGN.md`; menus added to Out of Scope; open question on the last bookable slot |
+| v1.2 | After the before/after test: US-4 criterion now refers to the Search page (G1); last bookable slot decided (closing − 90 min) in FR-3; open question closed |
