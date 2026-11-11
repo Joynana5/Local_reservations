@@ -53,8 +53,19 @@ export interface BookingRepository {
   ): Promise<InsertReservationResult>;
 }
 
+export interface CreatedBooking {
+  reservationId: string;
+  manageToken: string;
+  // Details for the confirmation email (FR-8)
+  restaurantName: string;
+  guestName: string;
+  guestEmail: string;
+  partySize: number;
+  startsAt: Date;
+}
+
 export type BookingResult =
-  | { ok: true; data: { reservationId: string; manageToken: string } }
+  | { ok: true; data: CreatedBooking }
   | { ok: false; code: "validation"; fieldErrors: BookingFieldErrors }
   | {
       ok: false;
@@ -173,6 +184,11 @@ export async function createReservation(
         data: {
           reservationId: result.reservationId,
           manageToken: result.manageToken,
+          restaurantName: details.restaurant.name,
+          guestName: booking.name,
+          guestEmail: booking.email,
+          partySize: booking.partySize,
+          startsAt,
         },
       };
     }

@@ -1,10 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import {
   createReservation,
   type BookingRepository,
 } from "../booking/create-reservation";
+import { sendConfirmationEmail } from "../email/send-confirmation";
 import {
   getReservationsForRestaurant,
   getRestaurantWithDetails,
@@ -71,7 +73,21 @@ export async function createReservationAction(
       email: text(formData, "email"),
     });
     if (!result.ok) return result;
-    manageToken = result.data.manageToken;
+    const booking = result.data;
+    manageToken = booking.manageToken;
+    // The booking is saved: send the email after the response so the guest isn't kept waiting.
+    // sendConfirmationEmail never throws, so a failed email can't undo or hide the booking.
+    after(() =>
+      sendConfirmationEmail({
+        reservationId: booking.reservationId,
+        to: booking.guestEmail,
+        guestName: booking.guestName,
+        restaurantName: booking.restaurantName,
+        startsAt: booking.startsAt,
+        partySize: booking.partySize,
+        manageToken: booking.manageToken,
+      }),
+    );
   } catch (cause) {
     console.error(
       "Creating reservation failed:",

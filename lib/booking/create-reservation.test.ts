@@ -113,7 +113,15 @@ describe("createReservation", () => {
 
     expect(result).toEqual({
       ok: true,
-      data: { reservationId: "res-1", manageToken: "token-1" },
+      data: {
+        reservationId: "res-1",
+        manageToken: "token-1",
+        restaurantName: "Nonna Rosa's",
+        guestName: "Maya Brooks",
+        guestEmail: "maya@example.com",
+        partySize: 2,
+        startsAt: slot1800,
+      },
     });
     expect(insertReservation).toHaveBeenCalledWith({
       restaurantId,
