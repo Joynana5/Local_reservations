@@ -10,7 +10,6 @@ import { getRestaurantWithDetails } from "@/lib/supabase/admin";
 import { BookingForm } from "@/components/guest/booking-form";
 import { buttonClasses } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SiteHeader } from "@/components/ui/site-header";
 
 export const metadata: Metadata = { title: "Book a table - TableNook" };
 
@@ -21,8 +20,7 @@ interface PageProps {
 
 export default function BookPage(props: PageProps) {
   return (
-    <div className="min-h-screen bg-paper text-ink">
-      <SiteHeader />
+    <>
       <main className="mx-auto max-w-[1100px] px-4 py-10 sm:px-6">
         <h1 className="mx-auto max-w-[540px] text-3xl font-bold tracking-tight">
           Book a table
@@ -39,7 +37,7 @@ export default function BookPage(props: PageProps) {
           </Suspense>
         </div>
       </main>
-    </div>
+    </>
   );
 }
 
