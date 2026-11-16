@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import 'server-only';
 import type { InsertReservationResult, NewReservation } from '../booking/create-reservation';
+import { MANAGE_TOKEN_PATTERN } from '../validation/cancel';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SECRET_KEY!;
@@ -162,8 +163,6 @@ export interface BookingConfirmation {
   restaurant: Pick<Restaurant, 'id' | 'name' | 'neighborhood' | 'cuisine' | 'address'>;
 }
 
-const MANAGE_TOKEN_PATTERN = /^[0-9a-f]{64}$/;
-
 export async function getReservationByToken(
   token: string,
 ): Promise<BookingConfirmation | null> {
@@ -191,6 +190,40 @@ export async function getReservationByToken(
     return null;
   }
   return { ...reservation, restaurant };
+}
+
+// A single conditional UPDATE, so a concurrent change (e.g. the restaurant seating the guest) can't be overwritten.
+export async function cancelReservationByToken(
+  token: string,
+  now: Date,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('reservations')
+    .update({ status: 'cancelled' })
+    .eq('manage_token', token)
+    .eq('status', 'confirmed')
+    .gt('starts_at', now.toISOString())
+    .select('id');
+
+  if (error) {
+    throw new Error(`Failed to cancel reservation: ${error.message}`);
+  }
+  return (data?.length ?? 0) > 0;
+}
+
+export async function getReservationStatusByToken(
+  token: string,
+): Promise<{ status: Reservation['status']; startsAt: Date } | null> {
+  const { data, error } = await supabase
+    .from('reservations')
+    .select('status, starts_at')
+    .eq('manage_token', token)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to fetch reservation: ${error.message}`);
+  }
+  return data && { status: data.status, startsAt: new Date(data.starts_at) };
 }
 
 export async function getUniqueNeighborhoods(): Promise<string[]> {

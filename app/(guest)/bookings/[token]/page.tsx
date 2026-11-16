@@ -1,0 +1,125 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Suspense } from "react";
+import { getReservationByToken } from "@/lib/supabase/admin";
+import { canCancel } from "@/lib/booking/cancel-reservation";
+import { formatMapleBayDate, formatMapleBayTime } from "@/lib/search-time";
+import { Badge } from "@/components/ui/badge";
+import { buttonClasses } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SiteHeader } from "@/components/ui/site-header";
+import { CancelBookingForm } from "@/components/guest/cancel-booking-form";
+
+export const metadata: Metadata = {
+  title: "Manage booking - TableNook",
+  robots: { index: false },
+};
+
+interface PageProps {
+  params: Promise<{ token: string }>;
+}
+
+export default function ManageBookingPage(props: PageProps) {
+  return (
+    <div className="min-h-screen bg-paper text-ink">
+      <SiteHeader />
+      <main className="mx-auto max-w-[540px] px-4 py-10 sm:px-6">
+        <Suspense
+          fallback={
+            <p role="status" className="text-muted">
+              Loading your booking…
+            </p>
+          }
+        >
+          <ManageBookingContent {...props} />
+        </Suspense>
+      </main>
+    </div>
+  );
+}
+
+const statusLabels = {
+  confirmed: "Table confirmed",
+  seated: "Seated",
+  no_show: "No-show",
+  cancelled: "Cancelled",
+} as const;
+
+async function ManageBookingContent({ params }: PageProps) {
+  const { token } = await params;
+  const reservation = await getReservationByToken(token);
+
+  if (!reservation) {
+    return (
+      <EmptyState title="We couldn't find this booking">
+        <p>The link may be incomplete or expired.</p>
+        <Link href="/search" className={`${buttonClasses("secondary")} mt-4`}>
+          Find a table
+        </Link>
+      </EmptyState>
+    );
+  }
+
+  const startsAt = new Date(reservation.starts_at);
+  const cancelled = reservation.status === "cancelled";
+  const cancellable = canCancel(
+    { status: reservation.status, startsAt },
+    new Date(),
+  );
+
+  return (
+    <>
+      <div aria-live="polite">
+        <h1 className="text-3xl font-bold tracking-tight">
+          {cancelled ? "Booking cancelled" : "Your booking"}
+        </h1>
+        {cancelled && (
+          <p className="mt-2 text-muted">
+            Your table has been released. You can book another time whenever
+            you like.
+          </p>
+        )}
+      </div>
+      <section
+        aria-label="Reservation details"
+        className="mt-6 rounded-xl border border-dashed border-muted bg-white p-6"
+      >
+        <p className="text-xl font-bold">{reservation.restaurant.name}</p>
+        <p className="text-muted">
+          {reservation.restaurant.cuisine} in{" "}
+          {reservation.restaurant.neighborhood}
+        </p>
+        <p className="text-muted">{reservation.restaurant.address}</p>
+        <p
+          className={`mt-4 font-bold ${cancelled ? "text-muted line-through" : ""}`}
+        >
+          {formatMapleBayDate(startsAt)} at {formatMapleBayTime(startsAt)}
+        </p>
+        <p className="text-muted">
+          {reservation.party_size === 1
+            ? "1 person"
+            : `${reservation.party_size} people`}{" "}
+          · Booked for {reservation.guest_name}
+        </p>
+        <div className="mt-4">
+          <Badge>{statusLabels[reservation.status]}</Badge>
+        </div>
+      </section>
+      {cancellable && <CancelBookingForm token={token} />}
+      {!cancelled && !cancellable && (
+        <p className="mt-4 text-muted">
+          This booking can no longer be cancelled online. Please contact the
+          restaurant if your plans have changed.
+        </p>
+      )}
+      {cancelled && (
+        <Link href="/search" className={`${buttonClasses("secondary")} mt-6`}>
+          Find a table
+        </Link>
+      )}
+      <p className="mt-2 text-sm text-muted">
+        Times are in Maple Bay (Pacific Time).
+      </p>
+    </>
+  );
+}
