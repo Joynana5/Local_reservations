@@ -5,6 +5,7 @@ import {
   createReservation,
   type BookingRepository,
 } from "../booking/create-reservation";
+import { sendBookingConfirmationEmail } from "../email/send-booking-confirmation";
 import {
   getReservationsForRestaurant,
   getRestaurantWithDetails,
@@ -61,15 +62,20 @@ export async function createReservationAction(
 ): Promise<BookingFormState> {
   let manageToken: string;
   try {
-    const result = await createReservation(repository, {
-      restaurantId: text(formData, "restaurantId"),
-      date: text(formData, "date"),
-      time: text(formData, "time"),
-      partySize: text(formData, "partySize"),
-      name: text(formData, "name"),
-      phone: text(formData, "phone"),
-      email: text(formData, "email"),
-    });
+    const result = await createReservation(
+      repository,
+      {
+        restaurantId: text(formData, "restaurantId"),
+        date: text(formData, "date"),
+        time: text(formData, "time"),
+        partySize: text(formData, "partySize"),
+        name: text(formData, "name"),
+        phone: text(formData, "phone"),
+        email: text(formData, "email"),
+      },
+      new Date(),
+      { sendConfirmation: sendBookingConfirmationEmail },
+    );
     if (!result.ok) return result;
     manageToken = result.data.manageToken;
   } catch (cause) {

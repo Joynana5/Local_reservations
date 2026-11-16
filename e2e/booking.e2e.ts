@@ -105,7 +105,7 @@ test("a guest books a table and sees the confirmation", async ({ page }) => {
   const details = page.getByRole("region", { name: "Reservation details" });
   await expect(details.getByText("Table confirmed")).toBeVisible();
   await expect(details.getByText("Tidewater Taqueria")).toBeVisible();
-  await expect(page.getByText(/e2e-guest@example.com/)).toBeVisible();
+  await expect(page.getByText(/We sent the details to e2e-guest@example.com/)).toBeVisible();
 });
 
 // Tidewater has a single 6-seat table, so one booking makes that slot unavailable for a party of 6.

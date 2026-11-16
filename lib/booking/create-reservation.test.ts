@@ -401,4 +401,73 @@ describe("createReservation", () => {
       "connection lost",
     );
   });
+
+  describe("confirmation email", () => {
+    it("sends one confirmation with the booking details and the stored manage token after saving", async () => {
+      const { repository } = createFakeRepository(["t1"]);
+      const sendConfirmation = vi.fn(async () => {});
+
+      await createReservation(repository, form, now, { sendConfirmation });
+
+      expect(sendConfirmation).toHaveBeenCalledTimes(1);
+      expect(sendConfirmation).toHaveBeenCalledWith({
+        reservationId: "res-1",
+        restaurantName: "Nonna Rosa's",
+        guestName: "Maya Brooks",
+        guestEmail: "maya@example.com",
+        partySize: 2,
+        startsAt: slot1800,
+        manageToken: "token-1",
+      });
+    });
+
+    it("sends no email when the booking is rejected", async () => {
+      const { repository, rows } = createFakeRepository(["t1"]);
+      seed(rows, "t1", slot1800);
+      const sendConfirmation = vi.fn(async () => {});
+
+      await createReservation(repository, form, now, { sendConfirmation });
+      await createReservation(
+        repository,
+        { ...form, email: "not-an-email" },
+        now,
+        { sendConfirmation },
+      );
+      await createReservation(repository, { ...form, time: "12:00" }, now, {
+        sendConfirmation,
+      });
+
+      expect(sendConfirmation).not.toHaveBeenCalled();
+    });
+
+    it("keeps the booking and logs the error without guest details when sending fails", async () => {
+      const { repository, rows } = createFakeRepository(["t1"]);
+      const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+      const sendConfirmation = vi.fn(async () => {
+        throw new Error("Resend request failed");
+      });
+
+      const result = await createReservation(repository, form, now, {
+        sendConfirmation,
+      });
+
+      expect(result).toEqual({
+        ok: true,
+        data: { reservationId: "res-1", manageToken: "token-1" },
+      });
+      expect(rows).toHaveLength(1);
+      expect(errorLog).toHaveBeenCalledTimes(1);
+      const logged = JSON.stringify(errorLog.mock.calls);
+      expect(logged).toContain("res-1");
+      for (const secret of [
+        "maya@example.com",
+        "Maya Brooks",
+        "5552345678",
+        "token-1",
+      ]) {
+        expect(logged).not.toContain(secret);
+      }
+      errorLog.mockRestore();
+    });
+  });
 });
