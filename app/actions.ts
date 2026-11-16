@@ -30,6 +30,8 @@ export async function searchRestaurants(
 ): Promise<RestaurantSearchResult[]> {
   const input = searchSchema.parse({ date, time, partySize, neighborhood });
   const { startsAt, weekday } = getMapleBaySlot(input.date, input.time);
+  // The restaurant page only offers slots that haven't started, so search must agree
+  if (startsAt.getTime() <= Date.now()) return [];
   const endsAt = new Date(startsAt.getTime() + 90 * 60_000);
   const restaurants = await getRestaurants(input.neighborhood);
 

@@ -6,7 +6,6 @@ import { formatMapleBayDate, formatMapleBayTime } from "@/lib/search-time";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SiteHeader } from "@/components/ui/site-header";
 
 export const metadata: Metadata = {
   title: "Booking confirmed - TableNook",
@@ -19,8 +18,7 @@ interface PageProps {
 
 export default function BookingConfirmedPage(props: PageProps) {
   return (
-    <div className="min-h-screen bg-paper text-ink">
-      <SiteHeader />
+    <>
       <main className="mx-auto max-w-[540px] px-4 py-10 sm:px-6">
         <Suspense
           fallback={
@@ -32,7 +30,7 @@ export default function BookingConfirmedPage(props: PageProps) {
           <ConfirmationContent {...props} />
         </Suspense>
       </main>
-    </div>
+    </>
   );
 }
 
