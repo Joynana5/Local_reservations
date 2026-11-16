@@ -84,8 +84,8 @@ async function ConfirmationContent({ params }: PageProps) {
       </section>
       {!cancelled && (
         <p className="mt-4 text-muted">
-          Confirmation emails to {reservation.guest_email} are coming soon. Save
-          this page&apos;s link to find your booking again.
+          We sent the details to {reservation.guest_email}. If it doesn&apos;t
+          arrive, save this page&apos;s link to find your booking again.
         </p>
       )}
       <p className="mt-2 text-sm text-muted">

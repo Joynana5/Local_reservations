@@ -8,6 +8,7 @@ import {
   type Reservation,
   type Table,
 } from "../availability";
+import type { BookingConfirmationDetails } from "../email/booking-confirmation";
 import { getMapleBayInstant, getMapleBaySlot } from "../search-time";
 import { bookingSchema, type BookingFieldErrors } from "../validation/booking";
 
@@ -65,10 +66,15 @@ export type BookingResult =
 
 const slotTakenMessage = "This time is no longer available.";
 
+export interface BookingEffects {
+  sendConfirmation?: (details: BookingConfirmationDetails) => Promise<void>;
+}
+
 export async function createReservation(
   repository: BookingRepository,
   input: unknown,
   now: Date = new Date(),
+  effects: BookingEffects = {},
 ): Promise<BookingResult> {
   const parsed = bookingSchema.safeParse(input);
   if (!parsed.success) {
@@ -168,6 +174,23 @@ export async function createReservation(
       endsAt,
     });
     if (result.kind === "created") {
+      // Awaited so serverless doesn't stop the send; a failure must never undo the saved booking.
+      try {
+        await effects.sendConfirmation?.({
+          reservationId: result.reservationId,
+          restaurantName: details.restaurant.name,
+          guestName: booking.name,
+          guestEmail: booking.email,
+          partySize: booking.partySize,
+          startsAt,
+          manageToken: result.manageToken,
+        });
+      } catch (cause) {
+        console.error("Sending booking confirmation email failed:", {
+          reservationId: result.reservationId,
+          reason: cause instanceof Error ? cause.message : "unknown error",
+        });
+      }
       return {
         ok: true,
         data: {
