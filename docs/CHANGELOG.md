@@ -4,6 +4,16 @@ All significant changes to architecture, rules, documentation, and features. Lis
 
 ---
 
+## 2026-11-15 — Guest Cancellation via Manage Link (US-10, #13)
+
+**What:** Added the manage page `/bookings/[token]` (G7) showing the reservation with a "Cancel booking" button and an inline confirm step. Cancelling sets `status = 'cancelled'` with a single conditional update (`confirmed` and `starts_at > now`), so the partial `no_double_booking` constraint and availability queries free the slot. Unknown or malformed tokens show an error and no reservation data.
+
+**Why:** FR-14 — guests can free their table from the link in the confirmation email (#8). The conditional update avoids overwriting a concurrent status change by the restaurant.
+
+**Files:** `app/(guest)/bookings/[token]/page.tsx`, `components/guest/cancel-booking-form.tsx`, `lib/actions/cancel-reservation-action.ts`, `lib/booking/cancel-reservation.ts`, `lib/validation/cancel.ts`, `lib/supabase/admin.ts`, `e2e/manage-booking.e2e.ts`
+
+---
+
 ## 2026-11-10 — Supabase Client Architecture Split
 
 **What:** Created three separate clients (`lib/supabase/admin.ts`, `server.ts`, `client.ts`) replacing monolithic `lib/supabase.ts`. Updated imports in `app/actions.ts` and `app/actions.test.ts`. Added usage rule to `AGENTS.md` §1.2.
