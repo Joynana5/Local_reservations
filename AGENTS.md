@@ -116,7 +116,7 @@ Supabase clients (§1.2 `lib/supabase/`):
 - Every feature PR tests **each testable acceptance criterion** of its issue. A test's name must describe what it asserts.
 - Availability edge cases: overlapping 90-min holds, a booking that would run past closing, party bigger than every table, closed day, two bookings racing for the last table.
 - Coverage: `npx vitest run --coverage` (add `@vitest/coverage-v8`); report the % for `lib/availability` and `lib/waitlist` in the PR.
-- **Playwright** for main flows: guest booking, restaurant onboarding, guest cancellation (waitlist in Sprint 2). Files: `e2e/<flow>.spec.ts`.
+- **Playwright** for main flows: guest booking, restaurant onboarding, guest cancellation (waitlist in Sprint 2). Files: `e2e/<flow>.e2e.ts`.
 - Use seeded Maple Bay data or fixtures — never real personal data.
 
 ---
