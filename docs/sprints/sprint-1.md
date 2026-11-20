@@ -31,6 +31,17 @@ UI components, rules files) is in place.
 ## Standups
 [ссылка на Discussion или issue со standups]
 
+<img width="1351" height="372" alt="image" src="https://github.com/user-attachments/assets/ed98aa87-40b9-4283-a723-d25893c2fd17" />
+
+<img width="1175" height="510" alt="image" src="https://github.com/user-attachments/assets/e8893233-5b87-428c-9978-f8d116ab59d2" />
+
+<img width="844" height="359" alt="image" src="https://github.com/user-attachments/assets/e4225ab0-fb6e-4123-91b7-af1aa3485762" />
+
+<img width="1171" height="521" alt="image" src="https://github.com/user-attachments/assets/f33a7cd9-485e-4596-a432-0b7e0b2ebaa1" />
+
+<img width="1342" height="403" alt="image" src="https://github.com/user-attachments/assets/848c1eb6-a872-4b11-9da2-288f621752d2" />
+
+
 ## Sprint Review
 **Working:** search with availability → restaurant page (G2) → booking form (G3)
 → confirmation (G4) → confirmation email with a manage link.
