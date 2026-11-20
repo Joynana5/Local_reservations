@@ -17,6 +17,7 @@ test("a manage link with an unknown token shows an error and no reservation deta
   page,
 }) => {
   await page.goto(`/bookings/${"0".repeat(64)}`);
+  await expect(page.getByRole("banner")).toHaveCount(1);
   await expect(page.getByText("We couldn't find this booking")).toBeVisible();
   await expect(
     page.getByRole("region", { name: "Reservation details" }),

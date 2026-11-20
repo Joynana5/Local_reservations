@@ -7,7 +7,6 @@ import { formatMapleBayDate, formatMapleBayTime } from "@/lib/search-time";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SiteHeader } from "@/components/ui/site-header";
 import { CancelBookingForm } from "@/components/guest/cancel-booking-form";
 
 export const metadata: Metadata = {
@@ -21,20 +20,17 @@ interface PageProps {
 
 export default function ManageBookingPage(props: PageProps) {
   return (
-    <div className="min-h-screen bg-paper text-ink">
-      <SiteHeader />
-      <main className="mx-auto max-w-[540px] px-4 py-10 sm:px-6">
-        <Suspense
-          fallback={
-            <p role="status" className="text-muted">
-              Loading your booking…
-            </p>
-          }
-        >
-          <ManageBookingContent {...props} />
-        </Suspense>
-      </main>
-    </div>
+    <main className="mx-auto max-w-[540px] px-4 py-10 sm:px-6">
+      <Suspense
+        fallback={
+          <p role="status" className="text-muted">
+            Loading your booking…
+          </p>
+        }
+      >
+        <ManageBookingContent {...props} />
+      </Suspense>
+    </main>
   );
 }
 
