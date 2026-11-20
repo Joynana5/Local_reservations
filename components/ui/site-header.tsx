@@ -1,9 +1,11 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 type Variant = "guest" | "restaurant";
 
 interface SiteHeaderProps {
   variant?: Variant;
+  actions?: ReactNode;
 }
 
 function LogoIcon() {
@@ -24,7 +26,7 @@ function LogoIcon() {
   );
 }
 
-export function SiteHeader({ variant = "guest" }: SiteHeaderProps) {
+export function SiteHeader({ variant = "guest", actions }: SiteHeaderProps) {
   return (
     <header className="border-b border-line bg-white">
       <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-4 py-4 sm:px-6">
@@ -47,6 +49,7 @@ export function SiteHeader({ variant = "guest" }: SiteHeaderProps) {
             >
               Guest site
             </Link>
+            {actions}
           </>
         )}
       </div>
