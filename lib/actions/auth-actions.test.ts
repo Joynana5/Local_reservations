@@ -73,6 +73,19 @@ describe("signUpAction", () => {
     expect(auth.signUp).not.toHaveBeenCalled();
   });
 
+  it("rejects passwords over 72 UTF-8 bytes before calling Supabase", async () => {
+    const state = await signUpAction(
+      null,
+      form({ email: "a@example.com", password: "é".repeat(37) }),
+    );
+    expect(state).toMatchObject({
+      ok: false,
+      code: "validation",
+      fieldErrors: { password: ["Password must be 72 bytes or fewer."] },
+    });
+    expect(auth.signUp).not.toHaveBeenCalled();
+  });
+
   it("reports an already registered email", async () => {
     auth.signUp.mockResolvedValue({
       data: { session: null, user: null },
@@ -153,5 +166,31 @@ describe("logOutAction", () => {
     auth.signOut.mockResolvedValue({ error: null });
     await expect(logOutAction()).rejects.toThrow("REDIRECT:/login");
     expect(auth.signOut).toHaveBeenCalledOnce();
+  });
+
+  it("returns an error without redirecting when signOut returns an error", async () => {
+    auth.signOut.mockResolvedValue({
+      error: { code: "unexpected_failure", message: "private details" },
+    });
+    await expect(logOutAction()).resolves.toEqual({
+      ok: false,
+      message: "We couldn't log you out. Please try again.",
+    });
+    expect(console.error).toHaveBeenCalledWith(
+      "Logout failed:",
+      "unexpected_failure",
+    );
+  });
+
+  it("returns an error without redirecting when signOut throws", async () => {
+    auth.signOut.mockRejectedValue(new Error("network unavailable"));
+    await expect(logOutAction()).resolves.toEqual({
+      ok: false,
+      message: "We couldn't log you out. Please try again.",
+    });
+    expect(console.error).toHaveBeenCalledWith(
+      "Logout failed:",
+      "network unavailable",
+    );
   });
 });

@@ -29,13 +29,30 @@ describe("signupSchema", () => {
     ]);
   });
 
-  it("rejects a password longer than 72 characters", () => {
-    const result = signupSchema.safeParse({
-      email: "owner@example.com",
-      password: "a".repeat(73),
-    });
-    expect(result.success).toBe(false);
-  });
+  it.each(["a".repeat(72), "é".repeat(36), "😀".repeat(18)])(
+    "accepts a password of exactly 72 UTF-8 bytes",
+    (password) => {
+      const result = signupSchema.safeParse({
+        email: "owner@example.com",
+        password,
+      });
+      expect(result.success).toBe(true);
+    },
+  );
+
+  it.each(["a".repeat(73), "é".repeat(36) + "a", "😀".repeat(18) + "a"])(
+    "rejects a password longer than 72 UTF-8 bytes",
+    (password) => {
+      const result = signupSchema.safeParse({
+        email: "owner@example.com",
+        password,
+      });
+      expect(result.success).toBe(false);
+      expect(result.error?.flatten().fieldErrors.password).toEqual([
+        "Password must be 72 bytes or fewer.",
+      ]);
+    },
+  );
 
   it("rejects an invalid email", () => {
     const result = signupSchema.safeParse({

@@ -15,6 +15,8 @@ export type AuthFormState =
   | { ok: true; code: "confirm_email"; message: string }
   | null;
 
+export type LogoutFormState = { ok: false; message: string } | null;
+
 const text = (formData: FormData, key: string) => {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
@@ -121,15 +123,23 @@ export async function logInAction(
   redirect(DASHBOARD_PATH);
 }
 
-export async function logOutAction(): Promise<void> {
+export async function logOutAction(): Promise<LogoutFormState> {
   try {
     const supabase = await createServerSupabaseClient();
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Logout failed:", error.code ?? error.message);
+      return {
+        ok: false,
+        message: "We couldn't log you out. Please try again.",
+      };
+    }
   } catch (cause) {
     console.error(
       "Logout failed:",
       cause instanceof Error ? cause.message : "unknown error",
     );
+    return { ok: false, message: "We couldn't log you out. Please try again." };
   }
   redirect(LOGIN_PATH);
 }

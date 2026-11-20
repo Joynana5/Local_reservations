@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const MIN_PASSWORD_LENGTH = 8;
-// bcrypt (used by Supabase Auth) ignores everything after 72 bytes
-const MAX_PASSWORD_LENGTH = 72;
+// Supabase Auth's bcrypt password limit is 72 UTF-8 bytes.
+const MAX_PASSWORD_BYTES = 72;
 
 const emailSchema = z
   .string()
@@ -18,9 +18,12 @@ export const signupSchema = z.object({
       MIN_PASSWORD_LENGTH,
       `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
     )
-    .max(
-      MAX_PASSWORD_LENGTH,
-      `Password must be ${MAX_PASSWORD_LENGTH} characters or fewer.`,
+    .refine(
+      (password) =>
+        new TextEncoder().encode(password).length <= MAX_PASSWORD_BYTES,
+      {
+        message: `Password must be ${MAX_PASSWORD_BYTES} bytes or fewer.`,
+      },
     ),
 });
 
