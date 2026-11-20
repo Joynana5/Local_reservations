@@ -46,7 +46,8 @@ UI components, rules files) is in place.
 **Working:** search with availability → restaurant page (G2) → booking form (G3)
 → confirmation (G4) → confirmation email with a manage link.
 Double booking is prevented by a server re-check plus a DB exclusion constraint;
-a race for the last table is covered by unit tests.
+races for the last table are covered by unit tests with an in-memory repository
+that mimics the constraint (lib/booking/create-reservation.test.ts).
 **Not completed:** all restaurant-side stories (US-1, US-2, US-3, US-6), moved to Sprint 2.
 
 ## Retrospective
