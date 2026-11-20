@@ -20,7 +20,8 @@ a guest can cancel a booking.
 | #12 | Live waitlist status (US-9) | usseiint | M | |
 | #28 | Fix e2e naming rule in AGENTS.md | usseiint | S | |
 
-**Scope plan:** if time runs out, US-9 is cut first, then US-8.
+**Scope plan:** the PRD named US-10 as the first cut candidate, but US-10 was
+already done (#13), so the cut order became US-9, then US-8, then US-7.
 Live updates may use 5-second polling instead of Realtime (PRD: updates within 5 s).
 
 ## Standups
