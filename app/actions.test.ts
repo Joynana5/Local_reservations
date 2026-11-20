@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../lib/supabase/admin", () => ({
   getRestaurants: vi.fn(),
@@ -17,13 +17,27 @@ const hours = { id: "h", restaurant_id: "r1", weekday: 6, open_time: "17:00:00",
 const table = { id: "t1", restaurant_id: "r1", label: "T1", capacity: 4 };
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-11-01T12:00:00Z"));
   vi.resetAllMocks();
   vi.mocked(getRestaurants).mockResolvedValue([restaurant]);
   vi.mocked(getRestaurantWithDetails).mockResolvedValue({ restaurant, openingHours: [hours], tables: [table] });
   vi.mocked(getReservationsForRestaurant).mockResolvedValue([]);
 });
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 describe("restaurant search", () => {
+  it("excludes every restaurant when the chosen time has already started", async () => {
+    vi.setSystemTime(new Date("2026-11-08T01:00:00Z")); // 17:00 on 2026-11-07 in Maple Bay
+    expect(await searchRestaurants("2026-11-07", "17:00", 2)).toEqual([]);
+    expect(await searchRestaurants("2026-11-07", "16:30", 2)).toEqual([]);
+    expect(getRestaurants).not.toHaveBeenCalled();
+    expect(await searchRestaurants("2026-11-07", "17:30", 2)).toMatchObject([{ id: "r1" }]);
+  });
+
   it("returns an open restaurant with a suitable free table", async () => {
     expect(await searchRestaurants("2026-11-07", "18:00", 4, "Riverside"))
       .toMatchObject([{ id: "r1", hasAvailability: true }]);

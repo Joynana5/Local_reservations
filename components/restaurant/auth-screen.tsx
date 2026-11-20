@@ -18,9 +18,10 @@ export async function AuthScreen({ mode }: { mode: "login" | "signup" }) {
       <div className="mt-6 rounded-xl border border-line bg-white p-6">
         <Tabs
           label="Restaurant account"
-          items={[
-            { label: "Log in", href: LOGIN_PATH, active: mode === "login" },
-            { label: "Sign up", href: SIGNUP_PATH, active: mode === "signup" },
+          activeId={mode}
+          tabs={[
+            { id: "login", label: "Log in", href: LOGIN_PATH },
+            { id: "signup", label: "Sign up", href: SIGNUP_PATH },
           ]}
         />
         <div className="mt-6">

@@ -25,7 +25,6 @@ import {
 } from "@/lib/supabase/admin";
 import { SlotPickerForm } from "@/components/guest/slot-picker-form";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SiteHeader } from "@/components/ui/site-header";
 import { TimeSlotButton } from "@/components/ui/time-slot-button";
 
 export const metadata: Metadata = { title: "Pick a time - TableNook" };
@@ -37,8 +36,7 @@ interface PageProps {
 
 export default function RestaurantPage(props: PageProps) {
   return (
-    <div className="min-h-screen bg-paper text-ink">
-      <SiteHeader />
+    <>
       <RefreshOnShow />
       <main className="mx-auto max-w-[1100px] px-4 py-10 sm:px-6">
         <Suspense
@@ -51,7 +49,7 @@ export default function RestaurantPage(props: PageProps) {
           <RestaurantContent {...props} />
         </Suspense>
       </main>
-    </div>
+    </>
   );
 }
 

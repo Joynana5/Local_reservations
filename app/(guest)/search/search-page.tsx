@@ -2,7 +2,7 @@
 
 import { useState, useSyncExternalStore, type FormEvent } from "react";
 import Link from "next/link";
-import { searchRestaurants, type RestaurantSearchResult } from "../actions";
+import { searchRestaurants, type RestaurantSearchResult } from "@/app/actions";
 
 const neighborhoods = ["Old Harbor", "Riverside", "Midtown", "Hillcrest"];
 const times = Array.from({ length: 48 }, (_, index) =>

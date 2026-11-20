@@ -23,13 +23,17 @@ test("the restaurant header and Log in / Sign up tabs are shown", async ({
   await page.goto("/login");
   await expect(page.getByText("Restaurant", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Guest site" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Log in" })).toHaveAttribute(
-    "aria-current",
-    "page",
+  await expect(page.getByRole("tab", { name: "Log in" })).toHaveAttribute(
+    "aria-selected",
+    "true",
   );
 
-  await page.getByRole("link", { name: "Sign up" }).click();
+  await page.getByRole("tab", { name: "Sign up" }).click();
   await expect(page).toHaveURL(/\/signup$/);
+  await expect(page.getByRole("tab", { name: "Sign up" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
   await expect(
     page.getByRole("button", { name: "Create account" }),
   ).toBeVisible();
