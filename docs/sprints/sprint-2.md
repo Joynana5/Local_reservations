@@ -25,7 +25,34 @@ already done (#13), so the cut order became US-9, then US-8, then US-7.
 Live updates may use 5-second polling instead of Realtime (PRD: updates within 5 s).
 
 ## Standups
-[ссылки]
+## Standups
+
+**📅 Nov 11**
+- ✅ Done: confirmation email via Resend (#8, PR #27); committed the Next.js agent
+  rules block to stop `next dev` rewriting AGENTS.md (#24, PR #25); opened PR #26
+  (Tabs, header variants, guest/restaurant layouts, H0 start page, #18);
+  implemented guest cancellation locally (#13).
+- 🎯 Next: open the PR for #13, start restaurant auth (#3).
+- 🚧 Blockers: #8 turned out to be implemented twice (the issue had no assignee);
+  kept the working version. Accidentally deleted the reservations table while
+  cleaning test data and restored it from the migration file. PRs are waiting
+  for partner review.
+
+**📅 Nov 15**
+- ✅ Done: restaurant sign-up, login and logout (#3, PR #29), including fixes from
+  the AI self-review (logout errors, byte-based password limit); guest cancellation
+  merged (#13, PR #30); Sprint 1 docs updated.
+- 🎯 Next: restaurant setup (#4, #5), reservation dashboard (#9), deploy to Vercel.
+- 🚧 Blockers: my partner stopped contributing, so I took over all remaining issues.
+  The #3 branch was created from an outdated main and had to be merged with PR #26.
+  Copilot credits are almost used up.
+
+**📅 Nov 15**
+- ✅ Done: restaurant profile, opening hours and tables (#4, #5, PR #31);
+  reservation dashboard with live updates (#9, PR #32); deployed to Vercel;
+  sprint docs and README.
+- 🎯 Next: submit P2.
+- 🚧 Blockers: waitlist stories (#10–#12) cut for time and moved to the backlog.
 
 ## Sprint Review
 _To be filled at the end of the sprint._
