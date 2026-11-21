@@ -2,7 +2,10 @@
 // Integration tests: the public API route handlers run against the real
 // Supabase database (read-only, nothing is written). Locally the keys come
 // from .env.local; in CI they come from GitHub Actions Secrets.
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+
+// lib/supabase/admin.ts imports "server-only", which throws outside Next.js
+vi.mock("server-only", () => ({}));
 
 try {
   process.loadEnvFile(".env.local");
