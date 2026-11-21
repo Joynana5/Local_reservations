@@ -1,16 +1,9 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import {
-  createReservation,
-  type BookingRepository,
-} from "../booking/create-reservation";
+import { createReservation } from "../booking/create-reservation";
+import { supabaseBookingRepository } from "../booking/supabase-repositories";
 import { sendBookingConfirmationEmail } from "../email/send-booking-confirmation";
-import {
-  getReservationsForRestaurant,
-  getRestaurantWithDetails,
-  insertReservation,
-} from "../supabase/admin";
 import type { BookingFieldErrors } from "../validation/booking";
 
 export type BookingFormState =
@@ -24,33 +17,6 @@ export type BookingFormState =
   | { ok: false; code: "error"; message: string }
   | null;
 
-const repository: BookingRepository = {
-  getRestaurantDetails: async (restaurantId) => {
-    const details = await getRestaurantWithDetails(restaurantId);
-    return (
-      details && {
-        restaurant: details.restaurant,
-        openingHours: details.openingHours,
-        tables: details.tables,
-      }
-    );
-  },
-  getActiveReservations: async (restaurantId, from, to) => {
-    const reservations = await getReservationsForRestaurant(
-      restaurantId,
-      from,
-      to,
-    );
-    return reservations.map((reservation) => ({
-      tableId: reservation.table_id,
-      startsAt: new Date(reservation.starts_at),
-      endsAt: new Date(reservation.ends_at),
-      status: reservation.status,
-    }));
-  },
-  insertReservation,
-};
-
 const text = (formData: FormData, key: string) => {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
@@ -63,7 +29,7 @@ export async function createReservationAction(
   let manageToken: string;
   try {
     const result = await createReservation(
-      repository,
+      supabaseBookingRepository,
       {
         restaurantId: text(formData, "restaurantId"),
         date: text(formData, "date"),
