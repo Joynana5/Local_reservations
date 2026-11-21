@@ -1,8 +1,24 @@
-P2 Individual Reflection — TableNook
+**P2 Individual Reflection — TableNook** 
 
 When I started P2, the hard parts for me were the tests, the Agile process and working in a team.
-There were a lot of tests. Unit tests in Vitest for the booking logic, Playwright tests that click through the site, and at the end integration tests for the API. Honestly, for a long time they felt like extra work. That changed when they started catching things I would have missed, like two guests trying to book the last table at the same time. The first time my CI pipeline ran, it failed because one environment variable had a different name in the workflow. Small thing, but I would never have noticed it myself.
-The Agile part was harder than I expected. My partner stopped working on the project, and I ended up doing everything alone: planning, coding, reviews, standups and retros. Writing a retrospective when things went wrong was not easy. I had to work with AI more and write down mistakes, like making branches from an old version of main (twice) and deleting a database table by accident and it was confusing because most of work was done by an agent and it wsa hard to catch. But once I wrote them down, I actually stopped repeating them. I also had to decide what to cut, so I moved the waitlist to the backlog to make sure booking worked properly for both guests and restaurants.
-The AI agent (GitHub Copilot in Agent mode) did a good job most of the time. The problem was Sprint 1, when it kept ignoring my AGENTS.md. It skipped the design file, created summary files I said not to create, and once used the secret Supabase key in a way that bypassed our security rules. I had to rewrite the rules more than three times before it followed them. What I took from this: if a rule is vague, the agent will not follow it. It has to be exact, with file names and examples.
-Next time I would first spend some time comparing AI models and tools for different tasks. I felt Claude worked better than the agent I used, so from now on I would work only with it because it works really good without making it explain several times. And I would set up CI and deployment in the first week, not in the last days. 
-Overall I learned a lot about AI Coding, and woul work on my programming skills because there were a lot of times when I didn't really know what the agent was doing and had to use other agent to make sure what is happening and why. 
+There were a lot of tests. Unit tests in Vitest for the booking logic, Playwright tests that click through the site,
+and at the end integration tests for the API. Honestly, for a long time they felt like extra work. 
+That changed when they started catching things I would have missed, like two guests trying to book the last table at the same time.
+The first time my CI pipeline ran, it failed because one environment variable had a different name in the workflow. 
+Small thing, but I would never have noticed it myself.
+
+The Agile part was harder than I expected. My partner stopped working on the project, and I ended up doing everything alone: 
+planning, coding, reviews, standups and retros. Writing a retrospective when things went wrong was not easy. I had to work
+with AI more and write down mistakes, like making branches from an old version of main (twice) and deleting a database table by accident 
+and it was confusing because most of work was done by an agent and it wsa hard to catch. But once I wrote them down, 
+I actually stopped repeating them. I also had to decide what to cut, so I moved the waitlist to the backlog to make sure booking worked
+properly for both guests and restaurants.
+The AI agent (GitHub Copilot in Agent mode) did a good job most of the time. The problem was Sprint 1, when it kept ignoring my AGENTS.md.
+It skipped the design file, created summary files I said not to create, and once used the secret Supabase key in a way that bypassed our
+security rules. I had to rewrite the rules more than three times before it followed them. What I took from this: if a rule is vague, the agent 
+will not follow it. It has to be exact, with file names and examples.
+Next time I would first spend some time comparing AI models and tools for different tasks. I felt Claude worked better than the agent I used,
+so from now on I would work only with it because it works really good without making it explain several times. And I would set up CI and deployment 
+in the first week, not in the last days. 
+Overall I learned a lot about AI Coding, and woul work on my programming skills because there were a lot of times when I didn't really 
+know what the agent was doing and had to use other agent to make sure what is happening and why. 
