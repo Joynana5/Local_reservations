@@ -1,0 +1,263 @@
+openapi: 3.1.0
+info:
+  title: TableNook Public API
+  version: 1.0.0
+  description: |
+    Public REST API for TableNook, a free reservation tool for small
+    independent restaurants in the fictional city of Maple Bay.
+    Guests do not need an account. Times are in Maple Bay local time
+    (America/Los_Angeles); timestamps in responses are ISO 8601 UTC.
+
+    Restaurant owners sign in with Supabase Auth (email + password), which
+    issues a JWT. Owner data is protected by Supabase Row Level Security.
+servers:
+  - url: https://local-reservations.vercel.app
+    description: Production
+  - url: http://localhost:3000
+    description: Local development
+
+tags:
+  - name: Restaurants
+  - name: Reservations
+
+paths:
+  /api/restaurants:
+    get:
+      tags: [Restaurants]
+      summary: Search restaurants with a free table
+      description: >
+        Returns restaurants that are open at the given time and have at least
+        one free table for the party size (US-4, FR-5).
+      parameters:
+        - $ref: "#/components/parameters/Date"
+        - name: time
+          in: query
+          required: true
+          description: 30-minute slot start, local time.
+          schema: { type: string, pattern: "^([01]\\d|2[0-3]):(00|30)$", example: "18:30" }
+        - $ref: "#/components/parameters/PartySize"
+        - name: neighborhood
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [Old Harbor, Riverside, Midtown, Hillcrest]
+      responses:
+        "200":
+          description: Matching restaurants (empty array if none match).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  restaurants:
+                    type: array
+                    items: { $ref: "#/components/schemas/RestaurantSearchResult" }
+        "400": { $ref: "#/components/responses/InvalidQuery" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/restaurants/{id}/availability:
+    get:
+      tags: [Restaurants]
+      summary: Get a restaurant's slots for a day
+      description: >
+        Every bookable 30-minute slot of the day for the party size, marked
+        free or booked. A reservation holds a table for 90 minutes and must
+        end by closing time (FR-6). Slots that have already started are omitted.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: "#/components/parameters/Date"
+        - $ref: "#/components/parameters/PartySize"
+      responses:
+        "200":
+          description: Slots for the day. `open` is false and `slots` is empty on a closed day.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  restaurantId: { type: string, format: uuid }
+                  date: { type: string, format: date }
+                  partySize: { type: integer }
+                  open: { type: boolean }
+                  slots:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        startsAt: { type: string, format: date-time }
+                        available: { type: boolean }
+        "400": { $ref: "#/components/responses/InvalidQuery" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/reservations:
+    post:
+      tags: [Reservations]
+      summary: Book a table
+      description: >
+        Creates a reservation without a guest account (US-5). Availability is
+        re-checked on the server, and a database exclusion constraint prevents
+        double booking (FR-7). A confirmation email with a manage link is sent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BookingRequest" }
+      responses:
+        "201":
+          description: Reservation created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reservationId: { type: string, format: uuid }
+                  manageToken:
+                    type: string
+                    description: Secret token for the guest's manage/cancel link.
+        "400":
+          description: Invalid input.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+        "409":
+          description: The slot was taken; alternative times are suggested.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Unavailable" }
+        "422":
+          description: The time cannot be booked (closed, outside hours, in the past, no table large enough).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Unavailable" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/reservations/{token}:
+    delete:
+      tags: [Reservations]
+      summary: Cancel a reservation as a guest
+      description: >
+        Cancels a confirmed future reservation using the token from the
+        confirmation email (US-10, FR-14). The time slot becomes available again.
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Cancelled, or it was already cancelled.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alreadyCancelled: { type: boolean }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: The reservation can no longer be cancelled online.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Supabase Auth access token for restaurant owners. The endpoints above
+        are public guest endpoints and do not require it; owner actions
+        (setup, dashboard) use the same JWT and are protected by RLS.
+
+  parameters:
+    Date:
+      name: date
+      in: query
+      required: true
+      description: Local Maple Bay date.
+      schema: { type: string, format: date, example: "2026-12-05" }
+    PartySize:
+      name: partySize
+      in: query
+      required: true
+      schema: { type: integer, minimum: 1, maximum: 20, example: 2 }
+
+  schemas:
+    RestaurantSearchResult:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        neighborhood: { type: string }
+        cuisine: { type: string }
+        address: { type: string }
+        description: { type: string }
+        hasAvailability: { type: boolean }
+    BookingRequest:
+      type: object
+      required: [restaurantId, date, time, partySize, name, phone, email]
+      properties:
+        restaurantId: { type: string, format: uuid }
+        date: { type: string, format: date, example: "2026-12-05" }
+        time: { type: string, pattern: "^([01]\\d|2[0-3]):(00|30)$", example: "19:00" }
+        partySize: { type: integer, minimum: 1, maximum: 20 }
+        name: { type: string, maxLength: 100 }
+        phone:
+          type: string
+          description: 10-digit North American number.
+          example: "(555) 123-4567"
+        email: { type: string, format: email, maxLength: 254 }
+    ValidationError:
+      type: object
+      properties:
+        error: { type: string, example: validation }
+        fieldErrors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+    Unavailable:
+      type: object
+      properties:
+        error: { type: string, enum: [slot_taken, unavailable] }
+        message: { type: string }
+        alternatives:
+          type: array
+          items: { type: string, format: date-time }
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+        message: { type: string }
+
+  responses:
+    InvalidQuery:
+      description: Invalid query parameters.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string, example: invalid_query }
+              fieldErrors:
+                type: object
+                additionalProperties:
+                  type: array
+                  items: { type: string }
+    NotFound:
+      description: Not found.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    ServerError:
+      description: Unexpected server error.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
