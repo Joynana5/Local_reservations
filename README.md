@@ -13,7 +13,7 @@ bookings live.
 | **Demo video** | [Google Drive](https://drive.google.com/drive/folders/1N3JnIMRroymi5Iz-60_HZQLakCgY0o73?usp=drive_link) |
 | **Scrum board** | https://github.com/users/Joynana5/projects/12 |
 | **API docs** | [docs/openapi.yaml](docs/openapi.yaml) |
-| **Docs** | [PRD](docs/PRD.md) · [Design](docs/DESIGN.md) · [Sprint 1](docs/sprints/sprint-1.md) · [Sprint 2](docs/sprints/sprint-2.md) · [Contribution log](docs/contributions.md) | [Reflection](docs/reflection)
+| **Docs** | [PRD](docs/PRD.md) ·  [Design](docs/DESIGN.md) · [Sprint 1](docs/sprints/sprint-1.md) · [Sprint 2](docs/sprints/sprint-2.md) · [Contribution log](docs/contributions.md) · [Reflection](docs/reflection) | 
 
 ## Roles and features
 
