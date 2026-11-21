@@ -25,8 +25,6 @@ already done (#13), so the cut order became US-9, then US-8, then US-7.
 Live updates may use 5-second polling instead of Realtime (PRD: updates within 5 s).
 
 ## Standups
-## Standups
-
 **📅 Nov 11**
 - ✅ Done: confirmation email via Resend (#8, PR #27); committed the Next.js agent
   rules block to stop `next dev` rewriting AGENTS.md (#24, PR #25); opened PR #26
@@ -55,7 +53,14 @@ Live updates may use 5-second polling instead of Realtime (PRD: updates within 5
 - 🚧 Blockers: waitlist stories (#10–#12) cut for time and moved to the backlog.
 
 ## Sprint Review
-_To be filled at the end of the sprint._
+My partner stopped contributing and I took over all remaining
+issues. Lesson for future teams: assign an owner to every issue at sprint planning
+and check progress at every standup, so a gap is visible early.
 
 ## Retrospective
-_To be filled at the end of the sprint._
+- Added a CI/CD pipeline (lint, typecheck, unit + integration tests, build, E2E,
+  npm audit, CodeQL, Dependabot); it caught a missing env var on its first run (#34).
+- Applied the Next.js 16.4.6 security update through a regular PR, because
+  Dependabot PRs cannot read repository secrets (#45).
+- Built the public REST API test-first: failing integration tests were committed
+  before the route handlers, and the agent followed the same pattern for POST/DELETE (#44).
